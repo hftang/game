@@ -18,6 +18,7 @@ config/icon="res://assets/ui/coin_icon.png"
 
 [autoload]
 
+
 GameManager="*res://scripts/autoload/game_manager.gd"
 
 [display]
