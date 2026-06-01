@@ -1,0 +1,8 @@
+SCRIPT ERROR: Parse Error: Expected end of statement after expression, found "else" instead.
+   at: GDScript::reload (res://autoload_test.gd:83)
+ERROR: Failed to load script "res://autoload_test.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:3022)
+ERROR: Failed to instantiate an autoload, script 'res://autoload_test.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4075)
+ERROR: Error opening file 'res://assets/ui/coin_icon.png'.
+   at: load_image (core/io/image_loader.cpp:89)
