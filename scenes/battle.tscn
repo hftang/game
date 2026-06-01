@@ -122,3 +122,92 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "Return to Town"
 theme_override_font_sizes/font_size = 22
+
+[node name="FlashOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="SlashEffect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 680.0
+offset_bottom = 340.0
+color = Color(1, 0.9, 0.2, 0.8)
+
+[node name="DamageLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 450.0
+offset_top = 280.0
+offset_right = 630.0
+offset_bottom = 320.0
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+
+[node name="HealEffect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 700.0
+offset_right = 200.0
+offset_bottom = 900.0
+color = Color(0.2, 1, 0.3, 0.6)
+
+[node name="EnemyFlash" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -128.0
+offset_top = 250.0
+offset_right = 128.0
+offset_bottom = 506.0
+grow_horizontal = 2
+color = Color(1, 1, 1, 0.7)
+
+[node name="VictoryPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -150.0
+offset_right = 250.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VictoryLabel" type="Label" parent="VictoryPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 56
