@@ -1,28 +1,37 @@
 ; Engine configuration file.
-; It is best edited using the editor UI and not directly,
-; but it can also be edited manually.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
 [application]
+
 config/name="Orishas Path"
 config/description="A turn-based RPG mobile game with African mythology theme"
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.2", "GL Compatibility")
+config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://assets/ui/coin_icon.png"
 
 [autoload]
+
 GameManager="*res://scripts/autoload/game_manager.gd"
 
 [display]
+
 window/size/viewport_width=1080
 window/size/viewport_height=1920
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
 [gui]
+
 theme/custom="res://assets/ui/game_theme.tres"
 
 [rendering]
+
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

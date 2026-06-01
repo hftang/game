@@ -17,6 +17,8 @@ extends Control
 @onready var victory_panel: Panel = $VictoryPanel
 @onready var victory_label: Label = $VictoryPanel/VictoryLabel
 
+var gm: Node = null
+var player_name: String = "Hero"
 var player_hp: int = 100
 var player_max_hp: int = 100
 var player_mp: int = 50
@@ -28,6 +30,9 @@ var battle_active: bool = true
 var is_animating: bool = false
 
 func _ready():
+    gm = get_node_or_null("/root/GameManager")
+    if gm:
+        player_name = str(gm.get("player_name")) if gm.get("player_name") else "Hero"
     attack_btn.pressed.connect(_on_attack)
     skill_btn.pressed.connect(_on_skill)
     defend_btn.pressed.connect(_on_defend)
@@ -57,9 +62,10 @@ func _update_display():
     for child in player_hp_bars.get_children():
         child.queue_free()
     var p_label = Label.new()
-    p_label.text = GameManager.player_name + ": " + str(player_hp) + "/" + str(player_max_hp)
+    p_label.text = player_name + ": " + str(player_hp) + "/" + str(player_max_hp)
     p_label.add_theme_font_size_override("font_size", 20)
-    p_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3) if player_hp > player_max_hp * 0.3 else Color(1.0, 0.3, 0.2))
+    var hp_ratio = float(player_hp) / float(player_max_hp)
+    p_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.3) if hp_ratio > 0.3 else Color(1.0, 0.3, 0.2))
     player_hp_bars.add_child(p_label)
     for child in enemy_hp_bars.get_children():
         child.queue_free()
@@ -82,34 +88,27 @@ func _enable_actions():
     defend_btn.disabled = false
     item_btn.disabled = false
 
-# ===== ATTACK ANIMATION =====
 func _on_attack():
     if not battle_active or is_animating: return
     is_animating = true
     _disable_actions()
     var damage = randi() % 10 + 5
     var tween = create_tween()
-    # Player lunges forward
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x + 30, 0.1)
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x, 0.1)
-    # Slash effect
     tween.tween_callback(func(): _show_slash(enemy_sprite.position + Vector2(0, 100)))
     tween.tween_interval(0.15)
-    # Enemy flash
     tween.tween_callback(func(): _flash_enemy())
     tween.tween_interval(0.1)
-    # Show damage
     tween.tween_callback(func(): _show_damage(enemy_sprite.position + Vector2(randf_range(-30, 30), 80), damage, false))
-    # Enemy shake
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x - 15, 0.05)
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x + 15, 0.05)
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x - 10, 0.05)
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x, 0.05)
     tween.tween_interval(0.3)
-    # Apply damage
     tween.tween_callback(func():
         enemy_hp = max(0, enemy_hp - damage)
-        battle_log.text += "[color=yellow]You attack for " + str(damage) + " damage![/color]\n"
+        battle_log.text += "You attack for " + str(damage) + " damage!\n"
         _update_display()
         if enemy_hp <= 0:
             _victory()
@@ -117,40 +116,34 @@ func _on_attack():
             _enemy_turn_attack()
     )
 
-# ===== SKILL ANIMATION =====
 func _on_skill():
     if not battle_active or is_animating: return
     if player_mp < 10:
-        battle_log.text += "[color=red]Not enough MP![/color]\n"
+        battle_log.text += "Not enough MP!\n"
         return
     is_animating = true
     _disable_actions()
     player_mp -= 10
     var damage = randi() % 15 + 10
     var tween = create_tween()
-    # Screen flash blue
     tween.tween_callback(func(): _screen_flash(Color(0.3, 0.4, 1.0, 0.5), 0.3))
     tween.tween_interval(0.15)
-    # Big slash effect
     tween.tween_callback(func(): _show_slash(enemy_sprite.position + Vector2(0, 50)))
     tween.tween_callback(func(): _show_slash(enemy_sprite.position + Vector2(-40, 120)))
     tween.tween_callback(func(): _show_slash(enemy_sprite.position + Vector2(40, 80)))
     tween.tween_interval(0.2)
-    # Enemy flash multiple times
     tween.tween_callback(func(): _flash_enemy())
     tween.tween_interval(0.1)
     tween.tween_callback(func(): _flash_enemy())
     tween.tween_interval(0.1)
-    # Big damage number
     tween.tween_callback(func(): _show_damage(enemy_sprite.position + Vector2(0, 60), damage, true))
-    # Enemy big shake
     for i in range(4):
         tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x + randf_range(-20, 20), 0.04)
     tween.tween_property(enemy_sprite, "position:x", enemy_sprite.position.x, 0.04)
     tween.tween_interval(0.3)
     tween.tween_callback(func():
         enemy_hp = max(0, enemy_hp - damage)
-        battle_log.text += "[color=cyan]Skill attack for " + str(damage) + " damage![/color]\n"
+        battle_log.text += "Skill attack for " + str(damage) + " damage!\n"
         _update_display()
         if enemy_hp <= 0:
             _victory()
@@ -158,59 +151,49 @@ func _on_skill():
             _enemy_turn_attack()
     )
 
-# ===== DEFEND ANIMATION =====
 func _on_defend():
     if not battle_active or is_animating: return
     is_animating = true
     _disable_actions()
-    # Shield flash
     var tween = create_tween()
     tween.tween_callback(func(): _screen_flash(Color(0.5, 0.8, 1.0, 0.4), 0.4))
     tween.tween_interval(0.3)
     tween.tween_callback(func():
-        battle_log.text += "[color=lightblue]You raise your shield![/color]\n"
+        battle_log.text += "You raise your shield!\n"
         _enemy_turn_defend()
     )
 
-# ===== ITEM USE ANIMATION =====
 func _on_item():
     if not battle_active or is_animating: return
     is_animating = true
     _disable_actions()
     var heal = 20
     var tween = create_tween()
-    # Green heal effect
     tween.tween_callback(func(): _show_heal())
     tween.tween_interval(0.2)
-    # Heal number floats up
     tween.tween_callback(func(): _show_damage(Vector2(100, 800), heal, false, true))
     tween.tween_interval(0.4)
     tween.tween_callback(func():
         player_hp = min(player_max_hp, player_hp + heal)
-        battle_log.text += "[color=green]Potion used! +" + str(heal) + " HP[/color]\n"
+        battle_log.text += "Potion used! +" + str(heal) + " HP\n"
         _update_display()
         _enemy_turn_attack()
     )
 
-# ===== ENEMY TURN =====
 func _enemy_turn_attack():
     var damage = randi() % 8 + 3
     var tween = create_tween()
     tween.tween_interval(0.3)
-    # Enemy lunges
     tween.tween_property(enemy_sprite, "position:y", enemy_sprite.position.y + 40, 0.12).set_ease(Tween.EASE_IN)
     tween.tween_property(enemy_sprite, "position:y", enemy_sprite.position.y, 0.08).set_ease(Tween.EASE_OUT)
-    # Screen shake
     tween.tween_callback(func(): _screen_shake(0.2))
-    # Red flash
     tween.tween_callback(func(): _screen_flash(Color(1.0, 0.2, 0.1, 0.4), 0.2))
     tween.tween_interval(0.1)
-    # Show damage on player side
     tween.tween_callback(func(): _show_damage(Vector2(randf_range(80, 200), randf_range(700, 800)), damage, false))
     tween.tween_interval(0.3)
     tween.tween_callback(func():
         player_hp = max(0, player_hp - damage)
-        battle_log.text += "[color=red]" + enemy_name_str + " attacks for " + str(damage) + "![/color]\n"
+        battle_log.text += enemy_name_str + " attacks for " + str(damage) + "!\n"
         _update_display()
         if player_hp <= 0:
             _defeat()
@@ -229,7 +212,7 @@ func _enemy_turn_defend():
     tween.tween_interval(0.3)
     tween.tween_callback(func():
         player_hp = max(0, player_hp - damage)
-        battle_log.text += "[color=orange]Blocked! Only " + str(damage) + " damage![/color]\n"
+        battle_log.text += "Blocked! Only " + str(damage) + " damage!\n"
         _update_display()
         if player_hp <= 0:
             _defeat()
@@ -238,21 +221,19 @@ func _enemy_turn_defend():
             _enable_actions()
     )
 
-# ===== VICTORY =====
 func _victory():
     battle_active = false
     var tween = create_tween()
-    # Enemy death animation
     tween.tween_property(enemy_sprite, "modulate:a", 0.0, 0.5)
     tween.tween_property(enemy_sprite, "scale", Vector2(0.5, 0.5), 0.5)
     tween.tween_interval(0.3)
-    # Victory flash
     tween.tween_callback(func(): _screen_flash(Color(1.0, 0.9, 0.3, 0.6), 0.5))
     tween.tween_interval(0.3)
     tween.tween_callback(func():
-        GameManager.add_exp(20)
-        GameManager.ori_coin += 10
-        battle_log.text += "[color=gold]VICTORY! +20 EXP, +10 Ori Coin[/color]\n"
+        if gm:
+            gm.call("add_exp", 20)
+            gm.set("ori_coin", gm.get("ori_coin") + 10)
+        battle_log.text += "VICTORY! +20 EXP, +10 Ori Coin\n"
         victory_panel.visible = true
         victory_label.text = "VICTORY!"
         victory_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
@@ -263,14 +244,13 @@ func _victory():
     tween.tween_property(victory_label, "scale", Vector2(1.0, 1.0), 0.3)
     tween.tween_callback(func(): back_btn.visible = true)
 
-# ===== DEFEAT =====
 func _defeat():
     battle_active = false
     var tween = create_tween()
     tween.tween_property(flash_overlay, "color", Color(0.1, 0.0, 0.0, 0.7), 0.8)
     tween.tween_interval(0.3)
     tween.tween_callback(func():
-        battle_log.text += "[color=red]DEFEAT...[/color]\n"
+        battle_log.text += "DEFEAT...\n"
         victory_panel.visible = true
         victory_label.text = "DEFEAT"
         victory_label.add_theme_color_override("font_color", Color(0.8, 0.1, 0.1))
@@ -279,7 +259,6 @@ func _defeat():
     tween.tween_property(victory_panel, "modulate:a", 1.0, 0.5)
     tween.tween_callback(func(): back_btn.visible = true)
 
-# ===== VISUAL EFFECTS =====
 func _show_slash(pos: Vector2):
     slash_effect.visible = true
     slash_effect.position = pos - Vector2(60, 10)

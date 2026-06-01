@@ -10,7 +10,10 @@ extends Control
 @onready var coin_label: Label = $CoinLabel
 @onready var level_label: Label = $LevelLabel
 
+var gm: Node = null
+
 func _ready():
+    gm = get_node_or_null("/root/GameManager")
     adventure_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/level_select.tscn"))
     shop_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/shop.tscn"))
     inventory_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/inventory.tscn"))
@@ -21,9 +24,13 @@ func _ready():
     _update_display()
 
 func _update_display() -> void:
-    coin_label.text = "Ori Coin: " + str(GameManager.ori_coin)
-    level_label.text = "Lv." + str(GameManager.level) + " " + GameManager.player_name
+    var coins = gm.get("ori_coin") if gm else 0
+    var lvl = gm.get("level") if gm else 1
+    var pname = gm.get("player_name") if gm else "Hero"
+    coin_label.text = "Ori Coin: " + str(coins)
+    level_label.text = "Lv." + str(lvl) + " " + str(pname)
 
 func _on_recharge() -> void:
-    GameManager.ori_coin += 500
+    if gm:
+        gm.set("ori_coin", gm.get("ori_coin") + 500)
     _update_display()
