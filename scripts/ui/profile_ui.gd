@@ -1,30 +1,24 @@
 extends Control
 
-@onready var name_label: Label = /NameLabel
-@onready var class_label: Label = /ClassLabel
-@onready var level_label: Label = /LevelLabel
-@onready var exp_label: Label = /ExpLabel
-@onready var coin_label: Label = /CoinLabel
-@onready var stats_label: Label = /StatsLabel
-@onready var equip_label: Label = /EquipLabel
-@onready var back_btn: Button = /BackBtn
-
-var character: GameCharacter
+@onready var name_label: Label = $VBoxContainer/NameLabel
+@onready var class_label: Label = $VBoxContainer/ClassLabel
+@onready var level_label: Label = $VBoxContainer/LevelLabel
+@onready var exp_label: Label = $VBoxContainer/ExpLabel
+@onready var coin_label: Label = $VBoxContainer/CoinLabel
+@onready var stats_label: Label = $VBoxContainer/StatsLabel
+@onready var back_btn: Button = $VBoxContainer/BackBtn
 
 func _ready():
   back_btn.pressed.connect(_on_back_pressed)
+  _update_display()
 
-func setup(char: GameCharacter, p_level: int, p_exp: int, p_coin: int) -> void:
-  character = char
-  name_label.text = "Name: " + char.character_name
-  class_label.text = "Class: " + CharacterClass.get_class_name(char.class_type)
-  level_label.text = "Level: " + str(p_level)
-  exp_label.text = "EXP: " + str(p_exp)
-  coin_label.text = "Ori Coin: " + str(p_coin)
-  stats_label.text = "HP: " + str(char.max_hp) + " | MP: " + str(char.max_mp) + " | ATK: " + str(char.base_atk) + " | DEF: " + str(char.base_def) + " | SPD: " + str(char.base_spd) + " | MAG: " + str(char.base_mag)
-  var weapon = char.equipment.weapon
-  var armor = char.equipment.armor
-  equip_label.text = "Weapon: " + (weapon.item_name if weapon else "None") + " | Armor: " + (armor.item_name if armor else "None")
+func _update_display() -> void:
+  name_label.text = "Name: " + GameManager.player_name
+  class_label.text = "Level: " + str(GameManager.level)
+  level_label.text = "EXP: " + str(GameManager.exp) + "/" + str(GameManager.exp_to_next)
+  exp_label.text = "Ori Coin: " + str(GameManager.ori_coin)
+  coin_label.text = "HP: " + str(GameManager.level * 10 + 90)
+  stats_label.text = "ATK: " + str(GameManager.level * 2 + 13) + " | DEF: " + str(GameManager.level * 2 + 8)
 
 func _on_back_pressed() -> void:
   get_tree().change_scene_to_file("res://scenes/town.tscn")
