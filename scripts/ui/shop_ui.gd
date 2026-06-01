@@ -1,33 +1,47 @@
 extends Control
 
-@onready var item_list: ItemList = /ItemList
-@onready var buy_button: Button = /BuyButton
-@onready var coin_label: Label = /CoinLabel
+@onready var item_list: VBoxContainer = $VBoxContainer/ItemList
+@onready var coin_label: Label = $VBoxContainer/CoinLabel
+@onready var back_btn: Button = $VBoxContainer/BackBtn
 
-var shop: ShopManager
-var selected_item: Item
+var items = [
+  {"name": "Iron Sword", "price": 100, "atk": 5},
+  {"name": "Bronze Axe", "price": 150, "atk": 8},
+  {"name": "Thunder Staff", "price": 300, "atk": 12},
+  {"name": "Leather Vest", "price": 80, "def": 3},
+  {"name": "Iron Plate", "price": 200, "def": 8},
+  {"name": "HP Potion", "price": 30, "heal": 50},
+  {"name": "MP Potion", "price": 25, "mp": 30}
+]
 
 func _ready():
-  buy_button.pressed.connect(_on_buy_pressed)
-  item_list.item_selected.connect(_on_item_selected)
+  back_btn.pressed.connect(_on_back)
+  _populate()
 
-func setup(shop_manager: ShopManager) -> void:
-  shop = shop_manager
-  _populate_items()
+func _populate():
+  coin_label.text = "Ori Coin: " + str(GameManager.ori_coin)
+  for child in item_list.get_children():
+    child.queue_free()
+  for i in range(items.size()):
+    var item = items[i]
+    var hbox = HBoxContainer.new()
+    var label = Label.new()
+    label.text = item.name + " - " + str(item.price) + " OC"
+    label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    hbox.add_child(label)
+    var btn = Button.new()
+    btn.text = "Buy"
+    btn.pressed.connect(_on_buy.bind(i))
+    hbox.add_child(btn)
+    item_list.add_child(hbox)
 
-func _populate_items():
-  item_list.clear()
-  var items = shop.get_shop_items()
-  for item in items:
-    var index = item_list.add_item(item.item_name + " - " + str(item.price) + " Ori Coin")
-    item_list.set_item_metadata(index, item)
+func _on_buy(index: int):
+  var item = items[index]
+  if GameManager.ori_coin >= item.price:
+    GameManager.ori_coin -= item.price
+    coin_label.text = "Ori Coin: " + str(GameManager.ori_coin)
+  else:
+    coin_label.text = "Not enough!"
 
-func _on_item_selected(index: int) -> void:
-  selected_item = item_list.get_item_metadata(index)
-
-func _on_buy_pressed() -> void:
-  if selected_item:
-    pass
-
-func update_coin_display(amount: int) -> void:
-  coin_label.text = "Ori Coin: " + str(amount)
+func _on_back():
+  get_tree().change_scene_to_file("res://scenes/town.tscn")
