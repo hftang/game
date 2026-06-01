@@ -1,41 +1,36 @@
 extends Control
 
-signal character_created(char_name: String, class_type: CharacterClass.ClassType)
-
 @onready var name_input: LineEdit = $VBoxContainer/NameInput
 @onready var class_buttons: VBoxContainer = $VBoxContainer/ClassButtons
 @onready var create_button: Button = $VBoxContainer/CreateButton
 @onready var class_desc: Label = $VBoxContainer/ClassDescription
 
-var selected_class: CharacterClass.ClassType = CharacterClass.ClassType.OGUN_WARRIOR
-var player_name: String = ""
+var selected_class_index: int = 0
+var class_names = ["Ogun Warrior", "Shango Mage", "Oshun Healer", "Eshu Scout"]
+var class_descs = ["High HP, strong physical attacks. Tank.", "Powerful magic. Glass cannon.", "Healing and support.", "Fast and tricky. Debuff."]
 
 func _ready():
   create_button.pressed.connect(_on_create_pressed)
   _setup_class_buttons()
 
 func _setup_class_buttons():
-  var classes = [
-    {"type": CharacterClass.ClassType.OGUN_WARRIOR, "name": "Ogun Warrior", "desc": "High HP, strong physical attacks."},
-    {"type": CharacterClass.ClassType.SHANGO_MAGE, "name": "Shango Mage", "desc": "Powerful lightning/fire magic."},
-    {"type": CharacterClass.ClassType.OSHUN_HEALER, "name": "Oshun Healer", "desc": "Healing and support."},
-    {"type": CharacterClass.ClassType.ESHU_SCOUT, "name": "Eshu Scout", "desc": "Fast and tricky. Debuff specialist."}
-  ]
-  for cls in classes:
+  for i in range(class_names.size()):
     var btn = Button.new()
-    btn.text = cls.name
-    btn.pressed.connect(_on_class_selected.bind(cls.type, cls.desc))
+    btn.text = class_names[i]
+    btn.pressed.connect(_on_class_selected.bind(i))
     class_buttons.add_child(btn)
 
-func _on_class_selected(type: CharacterClass.ClassType, desc: String):
-  selected_class = type
-  class_desc.text = desc
+func _on_class_selected(index: int):
+  selected_class_index = index
+  class_desc.text = class_descs[index]
 
 func _on_create_pressed():
-  player_name = name_input.text.strip_edges()
-  if player_name.is_empty():
-    class_desc.text = "Please enter a character name!"
+  var char_name = name_input.text.strip_edges()
+  if char_name.is_empty():
+    class_desc.text = "Please enter a name!"
     return
-  GameManager.player_name = player_name
-  GameManager.change_state(GameManager.GameState.TOWN)
+  GameManager.player_name = char_name
+  GameManager.level = 1
+  GameManager.exp = 0
+  GameManager.ori_coin = 100
   get_tree().change_scene_to_file("res://scenes/town.tscn")
